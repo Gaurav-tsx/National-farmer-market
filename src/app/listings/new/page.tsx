@@ -21,14 +21,14 @@ export default function NewListingPage() {
   const { t, formatCurrency } = useLanguage();
   const router = useRouter();
 
-  const [commodity, setCommodity] = useState("Tomato (Hybrid High-Yield)");
+  const [commodity, setCommodity] = useState("");
   const [category, setCategory] = useState<"Vegetables" | "Grains" | "Fruits" | "Spices" | "Dairy">("Vegetables");
-  const [quantityQuintal, setQuantityQuintal] = useState("150");
-  const [minOfferPrice, setMinOfferPrice] = useState("1850");
-  const [district, setDistrict] = useState("Nashik");
-  const [state, setState] = useState("Maharashtra");
-  const [pincode, setPincode] = useState("422003");
-  const [isOrganic, setIsOrganic] = useState(true);
+  const [quantityQuintal, setQuantityQuintal] = useState("");
+  const [minOfferPrice, setMinOfferPrice] = useState("");
+  const [district, setDistrict] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [isOrganic, setIsOrganic] = useState(false);
   const [harvestDate, setHarvestDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [loading, setLoading] = useState(false);
@@ -50,7 +50,7 @@ export default function NewListingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          farmerId: "usr-farmer-101",
+          farmerId: `farmer-${Date.now()}`,
           category,
           commodity,
           quantityQuintal: parseFloat(quantityQuintal),

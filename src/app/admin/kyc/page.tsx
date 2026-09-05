@@ -127,7 +127,7 @@ export default function AdminKYCQueuePage() {
         <ShieldAlert className="w-12 h-12 text-amber-400 mx-auto" />
         <h3 className="text-lg font-bold text-white">Access Restricted</h3>
         <p className="text-xs text-slate-400 max-w-md mx-auto">
-          Your current role (<span className="text-amber-400 font-mono">{currentSession?.role}</span>) does not hold the &apos;REVIEW_KYC&apos; privilege. Use the switcher in the header to switch to <span className="text-emerald-400 font-semibold">COMPLIANCE_OFFICER</span> or <span className="text-emerald-400 font-semibold">SUPER_ADMIN</span>.
+          Your current role (<span className="text-amber-400 font-mono">{currentSession?.role}</span>) does not hold the &apos;REVIEW_KYC&apos; privilege. Please sign in with an allowlisted account assigned <span className="text-emerald-400 font-semibold">COMPLIANCE_OFFICER</span> or <span className="text-emerald-400 font-semibold">SUPER_ADMIN</span> privileges.
         </p>
       </div>
     );

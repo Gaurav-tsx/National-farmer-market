@@ -19,12 +19,12 @@ export default function FarmerKYCPage() {
   const { t } = useLanguage();
 
   const [documentType, setDocumentType] = useState<"AADHAAR_XML" | "PAN" | "UDYAM">("AADHAAR_XML");
-  const [rawId, setRawId] = useState("918273644819");
-  const [holderName, setHolderName] = useState("Ramesh Tukaram Patil");
-  const [district, setDistrict] = useState("Nashik");
-  const [state, setState] = useState("Maharashtra");
-  const [pincode, setPincode] = useState("422003");
-  const [cropDeclaration, setCropDeclaration] = useState("Cultivating 6.5 Acres of export-grade Red Onion and Tomatoes.");
+  const [rawId, setRawId] = useState("");
+  const [holderName, setHolderName] = useState("");
+  const [district, setDistrict] = useState("");
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [cropDeclaration, setCropDeclaration] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export default function FarmerKYCPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "usr-farmer-101",
+          userId: `usr-${Date.now()}`,
           documentType,
           rawId,
           holderName,

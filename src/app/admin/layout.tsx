@@ -7,7 +7,7 @@ import {
   AdminSessionProvider,
   useAdminSession,
 } from "@/lib/admin-session-context";
-import { PREDEFINED_ADMIN_STAFF, AdminRole } from "@/lib/auth";
+import { createClient } from "@/utils/supabase/client";
 import {
   ShieldAlert,
   ShieldCheck,
@@ -16,53 +16,138 @@ import {
   Users,
   LayoutDashboard,
   LogOut,
-  ChevronDown,
   ArrowLeft,
   Lock,
   Menu,
   X,
-  UserCheck,
+  LogIn,
+  Sprout,
 } from "lucide-react";
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentSession, switchRoleAccount, simulateUnauthorizedLogin, logout } = useAdminSession();
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const { currentSession, loading, logout } = useAdminSession();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // If unauthorized screen is currently shown, don't show the admin sidebar
+  // If unauthorized screen is currently shown, display it without sidebar
   if (pathname === "/admin/unauthorized") {
     return <>{children}</>;
   }
 
-  // If session is null, redirect to unauthorized
-  if (!currentSession) {
+  // If session is still loading
+  if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white text-center space-y-4">
-        <ShieldAlert className="w-16 h-16 text-red-500 animate-pulse" />
-        <h2 className="text-xl font-bold">No Active Admin Session Found</h2>
-        <p className="text-xs text-slate-400 max-w-sm">
-          Select an authorized staff account from the Government Allowlist to enter NAM Administrative Core.
-        </p>
-        <div className="flex flex-wrap gap-2 justify-center max-w-md">
-          {PREDEFINED_ADMIN_STAFF.map((staff) => (
-            <button
-              key={staff.id}
-              onClick={() => {
-                switchRoleAccount(staff.email);
-                router.push("/admin");
-              }}
-              className="text-xs px-3 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-xl font-mono font-bold"
-            >
-              Login as {staff.role}
-            </button>
-          ))}
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-xs font-mono">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <span>Verifying Administrative Credentials...</span>
         </div>
       </div>
     );
   }
 
+  // If no active authenticated session, show the Strict Google Admin Gate
+  if (!currentSession) {
+    const handleGoogleSignIn = async () => {
+      setGoogleLoading(true);
+      setAuthError(null);
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback?next=/admin`,
+          },
+        });
+        if (error) throw error;
+      } catch (err: unknown) {
+        setAuthError(
+          err instanceof Error ? err.message : "Failed to initiate Google sign-in."
+        );
+        setGoogleLoading(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 text-white">
+        <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center">
+          {/* Emblem Icon */}
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center text-2xl mx-auto shadow-lg shadow-amber-900/40">
+            🏛️
+          </div>
+
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800 text-[11px] font-mono font-bold tracking-wide uppercase mb-2">
+              <Lock className="w-3.5 h-3.5" />
+              Restricted Portal
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white">
+              NAM Administrative Core
+            </h1>
+            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              Access is strictly restricted to allowlisted government personnel and certified APMC auditors.
+            </p>
+          </div>
+
+          {authError && (
+            <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-rose-300 text-xs">
+              {authError}
+            </div>
+          )}
+
+          {/* Google Sign In Button */}
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading}
+              className="w-full py-3 px-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+            >
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>{googleLoading ? "Connecting to Google..." : "Sign In with Google Workspace"}</span>
+            </button>
+
+            <Link
+              href="/login?next=/admin"
+              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl text-xs transition-colors flex items-center justify-center gap-2"
+            >
+              <LogIn className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Sign In with Allowlisted Staff Email</span>
+            </Link>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+            <Link href="/" className="hover:text-slate-300 flex items-center gap-1">
+              <ArrowLeft className="w-3 h-3" />
+              <span>Back to Marketplace</span>
+            </Link>
+            <span>IT Act 2000 Enforced</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Authenticated Admin Shell
   const navItems = [
     {
       href: "/admin",
@@ -75,14 +160,14 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       label: "KYC Verification Queue",
       icon: ShieldCheck,
       allowedRoles: ["SUPER_ADMIN", "COMPLIANCE_OFFICER"],
-      badge: "3 Pending",
+      badge: "Compliance",
     },
     {
       href: "/admin/mandi",
       label: "Mandi Price Manager",
       icon: TrendingUp,
       allowedRoles: ["SUPER_ADMIN", "MANDI_AUDITOR"],
-      badge: "Daily Spot",
+      badge: "Spot Rate",
     },
     {
       href: "/admin/audit",
@@ -103,7 +188,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row font-sans">
       {/* Sidebar for Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-slate-900 border-r border-slate-800 p-4 shrink-0">
-        {/* Government NAM Header */}
         <div className="flex items-center gap-3 pb-5 border-b border-slate-800">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-700 flex items-center justify-center text-white font-black shadow-md shadow-amber-900/40">
             🏛️
@@ -111,7 +195,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           <div>
             <div className="font-extrabold text-sm text-white tracking-tight">NAM Administrative</div>
             <div className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
-              Core RBAC v2.4
+              Core RBAC
             </div>
           </div>
         </div>
@@ -127,8 +211,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               return (
                 <div
                   key={item.href}
-                  className="px-3 py-2 rounded-xl text-xs text-slate-600 flex items-center justify-between opacity-50 cursor-not-allowed select-none"
-                  title={`Restricted: Requires ${item.allowedRoles.join(" or ")}`}
+                  className="px-3 py-2 rounded-xl text-xs text-slate-600 flex items-center justify-between opacity-40 cursor-not-allowed select-none"
+                  title={`Restricted to ${item.allowedRoles.join(" or ")}`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Icon className="w-4 h-4" />
@@ -168,7 +252,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Public Marketplace Quick Return */}
-        <div className="pt-4 border-t border-slate-800 space-y-2">
+        <div className="pt-4 border-t border-slate-800">
           <Link
             href="/"
             className="w-full py-2 px-3 bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
@@ -181,7 +265,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Admin Top Header */}
+        {/* Top Header */}
         <header className="h-16 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -190,91 +274,30 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             >
               {mobileSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <div className="text-xs font-bold text-slate-400 hidden sm:block">
-              Connected via <span className="text-emerald-400">Google Workspace SSO</span>
+            <div className="text-xs text-slate-400 font-mono hidden sm:block">
+              Authenticated Account: <span className="text-emerald-400 font-bold">{currentSession.email}</span>
             </div>
           </div>
 
-          {/* Active Admin Account & Interactive Role Switcher */}
+          {/* Active Admin Identity & Real Sign Out Button */}
           <div className="flex items-center gap-3">
-            {/* Interactive Role Switcher */}
-            <div className="relative">
-              <button
-                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs transition-colors cursor-pointer"
-                title="Switch administrative account to test RBAC permissions"
-              >
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <div className="text-left">
-                  <div className="font-bold text-white leading-none">{currentSession.name}</div>
-                  <div className="text-[10px] text-amber-400 font-mono mt-0.5 font-bold">
-                    {currentSession.role}
-                  </div>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
-              </button>
-
-              {roleDropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1 animate-in fade-in zoom-in-95"
-                  onMouseLeave={() => setRoleDropdownOpen(false)}
-                >
-                  <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
-                    Switch Test Staff Persona (RBAC)
-                  </div>
-                  {PREDEFINED_ADMIN_STAFF.map((staff) => (
-                    <button
-                      key={staff.id}
-                      onClick={() => {
-                        switchRoleAccount(staff.email);
-                        setRoleDropdownOpen(false);
-                      }}
-                      className={`w-full text-left p-2 rounded-xl transition-colors flex items-center justify-between ${
-                        staff.email === currentSession.email
-                          ? "bg-emerald-900/60 border border-emerald-700 text-white"
-                          : "hover:bg-slate-800 text-slate-300"
-                      }`}
-                    >
-                      <div>
-                        <div className="font-bold text-white text-xs">{staff.name}</div>
-                        <div className="text-[10px] text-slate-400 font-mono truncate max-w-[170px]">
-                          {staff.email}
-                        </div>
-                      </div>
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-slate-800 text-amber-400">
-                        {staff.role}
-                      </span>
-                    </button>
-                  ))}
-
-                  {/* Test 403 Forbidden Screen button */}
-                  <div className="pt-1 border-t border-slate-800">
-                    <button
-                      onClick={() => {
-                        simulateUnauthorizedLogin();
-                        setRoleDropdownOpen(false);
-                        router.push("/admin/unauthorized");
-                      }}
-                      className="w-full text-left p-2 rounded-xl text-red-400 hover:bg-red-950/60 transition-colors flex items-center gap-2 font-bold text-xs"
-                    >
-                      <ShieldAlert className="w-4 h-4 text-red-500" />
-                      <span>Test 403 (Unauthorized Gmail)</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="text-right">
+              <div className="font-bold text-white text-xs leading-none">{currentSession.name}</div>
+              <span className="text-[10px] text-amber-400 font-mono font-bold uppercase">
+                {currentSession.role}
+              </span>
             </div>
 
-            {/* Logout button */}
             <button
-              onClick={() => {
-                logout();
-                router.push("/admin/unauthorized");
+              onClick={async () => {
+                await logout();
+                router.push("/login?next=/admin");
               }}
-              className="p-2 text-slate-400 hover:text-red-400 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors"
-              title="Revoke Admin Session"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-rose-950/60 hover:text-rose-300 text-slate-300 text-xs font-bold rounded-xl border border-slate-700 transition-colors"
+              title="Sign Out of Administrative Session"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5 text-rose-400" />
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </header>

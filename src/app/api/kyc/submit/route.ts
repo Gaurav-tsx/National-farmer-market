@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     // Never save raw ID! Handled inside submitNewKYC via SHA-256 peppered hashing & masking
     const newKyc = dataStore.submitNewKYC({
-      userId: userId || "usr-farmer-101",
+      userId: userId || `usr-${Date.now()}`,
       documentType,
       rawId,
       holderName,

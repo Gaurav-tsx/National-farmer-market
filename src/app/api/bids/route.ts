@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
 
     const bid = dataStore.addBid({
       listingId,
-      buyerId: buyerId || "usr-buyer-201",
-      buyerName: buyerName || "Bharat Agro Commodities Ltd.",
+      buyerId: buyerId || `buyer-${Date.now()}`,
+      buyerName: buyerName || "Verified Commercial Buyer",
       bidAmount: Number(bidAmount),
       notes,
     });

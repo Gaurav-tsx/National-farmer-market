@@ -4,6 +4,7 @@
  */
 
 import { isPermittedEnterpriseDomain } from "./security";
+export { isPermittedEnterpriseDomain };
 
 export type AdminRole =
   | "SUPER_ADMIN"
@@ -64,45 +65,15 @@ export const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
 };
 
 /**
- * Pre-allowlisted staff accounts for demonstration and deployment
+ * Pre-allowlisted staff accounts for administrative access.
+ * Only verified accounts present in this directory or possessing verified
+ * official enterprise domain credentials can access the administrative core.
  */
 export const PREDEFINED_ADMIN_STAFF: AdminSession[] = [
   {
-    id: "admin-super-001",
-    email: "super.admin@agri.gov.in",
-    name: "Dr. Rajeshwar Sharma (IAS)",
-    role: "SUPER_ADMIN",
-    isActive: true,
-    lastLoginAt: new Date().toISOString(),
-  },
-  {
-    id: "admin-comp-002",
-    email: "compliance.officer@nam.gov.in",
-    name: "Sunita Deshmukh",
-    role: "COMPLIANCE_OFFICER",
-    isActive: true,
-    lastLoginAt: new Date().toISOString(),
-  },
-  {
-    id: "admin-mandi-003",
-    email: "mandi.auditor@nam.gov.in",
-    name: "Virender Pal Singh",
-    role: "MANDI_AUDITOR",
-    isActive: true,
-    lastLoginAt: new Date().toISOString(),
-  },
-  {
-    id: "admin-disp-004",
-    email: "dispute.officer@nam.gov.in",
-    name: "Ananya Iyer",
-    role: "DISPUTE_MANAGER",
-    isActive: true,
-    lastLoginAt: new Date().toISOString(),
-  },
-  {
-    id: "admin-gmail-005",
+    id: "admin-super-gaurav",
     email: "gaurav.verma.admin@gmail.com",
-    name: "Gaurav Verma (Staff Auditor)",
+    name: "Gaurav Verma",
     role: "SUPER_ADMIN",
     isActive: true,
     lastLoginAt: new Date().toISOString(),

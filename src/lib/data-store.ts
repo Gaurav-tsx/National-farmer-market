@@ -101,146 +101,12 @@ export interface BidRecord {
 }
 
 // -------------------------------------------------------------
-// INITIAL HIGH-CONCURRENCY MOCK / SEED DATA
+// CLEAN DATA STORE (NO DEFAULT MOCK USERS OR MOCK LISTINGS)
 // -------------------------------------------------------------
 
-const INITIAL_USERS: UserRecord[] = [
-  {
-    id: "usr-farmer-101",
-    phoneNumber: "+91 98234 11201",
-    email: "ramesh.patil@kisanmail.in",
-    fullName: "Ramesh Tukaram Patil",
-    preferredLang: "mr",
-    role: "FARMER",
-    kycStatus: "VERIFIED",
-    district: "Nashik",
-    state: "Maharashtra",
-    pincode: "422003",
-    createdAt: "2026-08-10T10:00:00Z",
-    updatedAt: "2026-08-12T14:30:00Z",
-  },
-  {
-    id: "usr-farmer-102",
-    phoneNumber: "+91 94172 88402",
-    email: "gurpreet.singh@kisanmail.in",
-    fullName: "Sardar Gurpreet Singh Dhillon",
-    preferredLang: "pa",
-    role: "FARMER",
-    kycStatus: "PENDING_REVIEW",
-    district: "Ludhiana",
-    state: "Punjab",
-    pincode: "141001",
-    createdAt: "2026-09-01T08:15:00Z",
-    updatedAt: "2026-09-01T08:20:00Z",
-  },
-  {
-    id: "usr-farmer-103",
-    phoneNumber: "+91 94401 55603",
-    email: "subba.rao@kisanmail.in",
-    fullName: "K. Subba Rao",
-    preferredLang: "te",
-    role: "FARMER",
-    kycStatus: "PENDING_REVIEW",
-    district: "Guntur",
-    state: "Andhra Pradesh",
-    pincode: "522001",
-    createdAt: "2026-09-02T11:45:00Z",
-    updatedAt: "2026-09-02T11:50:00Z",
-  },
-  {
-    id: "usr-farmer-104",
-    phoneNumber: "+91 98112 33404",
-    email: "devendra.yadav@kisanmail.in",
-    fullName: "Devendra Yadav",
-    preferredLang: "hi",
-    role: "FARMER",
-    kycStatus: "VERIFIED",
-    district: "Karnal",
-    state: "Haryana",
-    pincode: "132001",
-    createdAt: "2026-08-15T09:00:00Z",
-    updatedAt: "2026-08-16T11:00:00Z",
-  },
-  {
-    id: "usr-buyer-201",
-    phoneNumber: "+91 98200 44550",
-    email: "procurement@bharatagro.com",
-    fullName: "Bharat Agro Commodities Ltd.",
-    preferredLang: "en",
-    role: "COMMERCIAL_BUYER",
-    kycStatus: "VERIFIED",
-    district: "Mumbai",
-    state: "Maharashtra",
-    pincode: "400001",
-    createdAt: "2026-07-01T10:00:00Z",
-    updatedAt: "2026-07-02T12:00:00Z",
-  },
-];
+const INITIAL_USERS: UserRecord[] = [];
 
-const INITIAL_KYC: UserKYCRecord[] = [
-  {
-    id: "kyc-rec-001",
-    userId: "usr-farmer-101",
-    documentType: "AADHAAR_XML",
-    docHashOrId: maskIdentifier("918273644819", "AADHAAR_XML"),
-    docHashFull: hashGovernmentId("918273644819"),
-    verificationRef: "DL-IND-2026-9F8A21",
-    verifiedAt: "2026-08-12T14:30:00Z",
-    reviewedByAdmin: "compliance.officer@nam.gov.in",
-    status: "VERIFIED",
-    metadata: {
-      digiLockerName: "Ramesh Tukaram Patil",
-      digiLockerDob: "1978-04-14",
-      digiLockerPincode: "422003",
-      digiLockerState: "Maharashtra",
-      landRecordNumber: "7/12-NSK-88410",
-      declaredLandAcres: 6.5,
-      declaredCrops: ["Red Onion (Garva)", "Tomato", "Pomegranate"],
-      cropSelfDeclaration: "6.5 Acres cultivated with export-grade Nashik Garva Onion and hybrid high-yield tomatoes.",
-      matchScore: 98,
-    },
-  },
-  {
-    id: "kyc-rec-002",
-    userId: "usr-farmer-102",
-    documentType: "AADHAAR_XML",
-    docHashOrId: maskIdentifier("782190345281", "AADHAAR_XML"),
-    docHashFull: hashGovernmentId("782190345281"),
-    verificationRef: "DL-IND-2026-4C1E90",
-    status: "PENDING_REVIEW",
-    metadata: {
-      digiLockerName: "Gurpreet Singh Dhillon",
-      digiLockerDob: "1982-11-20",
-      digiLockerPincode: "141001",
-      digiLockerState: "Punjab",
-      landRecordNumber: "PB-LDH-JAMABANDI-2024-91",
-      declaredLandAcres: 14.0,
-      declaredCrops: ["Basmati Rice 1121", "Sharbati Wheat", "Mustard"],
-      cropSelfDeclaration: "14 Acres Basmati Paddy certified GI-tagged crop ready for direct procurement.",
-      matchScore: 94,
-    },
-  },
-  {
-    id: "kyc-rec-003",
-    userId: "usr-farmer-103",
-    documentType: "PAN",
-    docHashOrId: maskIdentifier("ABCDE4819F", "PAN"),
-    docHashFull: hashGovernmentId("ABCDE4819F"),
-    verificationRef: "DL-IND-2026-7B8329",
-    status: "PENDING_REVIEW",
-    metadata: {
-      digiLockerName: "K. Subba Rao",
-      digiLockerDob: "1975-09-08",
-      digiLockerPincode: "522001",
-      digiLockerState: "Andhra Pradesh",
-      landRecordNumber: "AP-GNT-ROR-1B-4091",
-      declaredLandAcres: 8.2,
-      declaredCrops: ["Guntur Teja Chilli (S17)", "Cotton", "Turmeric"],
-      cropSelfDeclaration: "Sun-dried fiery Guntur Teja Chilli with capsaicin > 0.6%, free from aflatoxins.",
-      matchScore: 96,
-    },
-  },
-];
+const INITIAL_KYC: UserKYCRecord[] = [];
 
 const INITIAL_MANDI_TICKERS: MandiPriceTickerRecord[] = [
   {
@@ -333,184 +199,11 @@ const INITIAL_MANDI_TICKERS: MandiPriceTickerRecord[] = [
   },
 ];
 
-const INITIAL_LISTINGS: ProductListingRecord[] = [
-  {
-    id: "list-001",
-    farmerId: "usr-farmer-101",
-    category: "Vegetables",
-    commodity: "Tomato (Hybrid Super Red)",
-    quantityQuintal: 120,
-    minOfferPrice: 1900,
-    harvestDate: "2026-09-04T00:00:00Z",
-    images: [
-      "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=800&auto=format&fit=crop&q=80",
-    ],
-    isOrganic: true,
-    isActive: true,
-    pincode: "422003",
-    district: "Nashik",
-    state: "Maharashtra",
-    createdAt: "2026-09-04T08:00:00Z",
-    bidsCount: 4,
-  },
-  {
-    id: "list-002",
-    farmerId: "usr-farmer-101",
-    category: "Vegetables",
-    commodity: "Nashik Garva Red Onion",
-    quantityQuintal: 250,
-    minOfferPrice: 2150,
-    harvestDate: "2026-09-02T00:00:00Z",
-    images: [
-      "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=800&auto=format&fit=crop&q=80",
-    ],
-    isOrganic: false,
-    isActive: true,
-    pincode: "422003",
-    district: "Nashik",
-    state: "Maharashtra",
-    createdAt: "2026-09-02T10:30:00Z",
-    bidsCount: 7,
-  },
-  {
-    id: "list-003",
-    farmerId: "usr-farmer-102",
-    category: "Grains",
-    commodity: "Basmati Paddy 1121 (Golden Sella)",
-    quantityQuintal: 350,
-    minOfferPrice: 4250,
-    harvestDate: "2026-09-03T00:00:00Z",
-    images: [
-      "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&auto=format&fit=crop&q=80",
-    ],
-    isOrganic: true,
-    isActive: true,
-    pincode: "141001",
-    district: "Ludhiana",
-    state: "Punjab",
-    createdAt: "2026-09-03T11:00:00Z",
-    bidsCount: 3,
-  },
-  {
-    id: "list-004",
-    farmerId: "usr-farmer-103",
-    category: "Spices",
-    commodity: "Guntur S17 Teja Dry Red Chilli",
-    quantityQuintal: 80,
-    minOfferPrice: 19500,
-    harvestDate: "2026-09-01T00:00:00Z",
-    images: [
-      "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=800&auto=format&fit=crop&q=80",
-    ],
-    isOrganic: false,
-    isActive: true,
-    pincode: "522001",
-    district: "Guntur",
-    state: "Andhra Pradesh",
-    createdAt: "2026-09-02T09:15:00Z",
-    bidsCount: 5,
-  },
-  {
-    id: "list-005",
-    farmerId: "usr-farmer-104",
-    category: "Grains",
-    commodity: "Sharbati Gold Wheat (Karnal)",
-    quantityQuintal: 400,
-    minOfferPrice: 2450,
-    harvestDate: "2026-09-01T00:00:00Z",
-    images: [
-      "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&auto=format&fit=crop&q=80",
-    ],
-    isOrganic: true,
-    isActive: true,
-    pincode: "132001",
-    district: "Karnal",
-    state: "Haryana",
-    createdAt: "2026-09-01T14:20:00Z",
-    bidsCount: 2,
-  },
-  {
-    id: "list-006",
-    farmerId: "usr-farmer-101",
-    category: "Fruits",
-    commodity: "Bhagwa Pomegranate (A-Grade)",
-    quantityQuintal: 90,
-    minOfferPrice: 11000,
-    harvestDate: "2026-09-03T00:00:00Z",
-    images: [
-      "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=800&auto=format&fit=crop&q=80",
-    ],
-    isOrganic: true,
-    isActive: true,
-    pincode: "422003",
-    district: "Nashik",
-    state: "Maharashtra",
-    createdAt: "2026-09-03T16:00:00Z",
-    bidsCount: 6,
-  },
-];
+const INITIAL_LISTINGS: ProductListingRecord[] = [];
 
-const INITIAL_AUDIT_TRAILS: AuditTrailRecord[] = [
-  {
-    id: "aud-001",
-    adminId: "admin-super-001",
-    adminName: "Dr. Rajeshwar Sharma (IAS)",
-    adminRole: "SUPER_ADMIN",
-    action: "PROVISION_STAFF_ROLE",
-    targetEntity: "AdminStaff",
-    targetId: "admin-comp-002",
-    timestamp: "2026-08-01T09:00:00Z",
-    ipAddress: "103.24.12.8",
-    metadata: { roleAssigned: "COMPLIANCE_OFFICER", approvedBy: "Joint Secretary" },
-  },
-  {
-    id: "aud-002",
-    adminId: "admin-comp-002",
-    adminName: "Sunita Deshmukh",
-    adminRole: "COMPLIANCE_OFFICER",
-    action: "APPROVE_KYC",
-    targetEntity: "UserKYC",
-    targetId: "kyc-rec-001",
-    timestamp: "2026-08-12T14:30:00Z",
-    ipAddress: "103.24.12.19",
-    metadata: {
-      userId: "usr-farmer-101",
-      verificationRef: "DL-IND-2026-9F8A21",
-      matchScore: 98,
-    },
-  },
-  {
-    id: "aud-003",
-    adminId: "admin-mandi-003",
-    adminName: "Virender Pal Singh",
-    adminRole: "MANDI_AUDITOR",
-    action: "UPDATE_MANDI_SPOT_PRICE",
-    targetEntity: "MandiPriceTicker",
-    targetId: "mandi-001",
-    timestamp: "2026-09-05T15:00:00Z",
-    ipAddress: "49.36.110.42",
-    metadata: {
-      apmc: "Lasalgaon Mandi (Nashik)",
-      commodity: "Onion (Red)",
-      oldModal: 2100,
-      newModal: 2200,
-      reason: "High festival demand reported in wholesale arrival bays",
-    },
-  },
-];
+const INITIAL_AUDIT_TRAILS: AuditTrailRecord[] = [];
 
-const INITIAL_BIDS: BidRecord[] = [
-  {
-    id: "bid-001",
-    listingId: "list-001",
-    buyerId: "usr-buyer-201",
-    buyerName: "Bharat Agro Commodities Ltd.",
-    bidAmount: 1950,
-    status: "PENDING",
-    notes: "Ready for immediate farmgate pickup with refrigerated logistics.",
-    createdAt: "2026-09-04T12:00:00Z",
-  },
-];
+const INITIAL_BIDS: BidRecord[] = [];
 
 // -------------------------------------------------------------
 // IN-MEMORY ACTIVE STATE SINGLETON
@@ -652,7 +345,7 @@ class NAMDataStore {
     return record;
   }
 
-  // PRODUCT LISTINGS
+  // PRODUCT LISTINGS - ONLY RETURN APPROVED & DIGILOCKER VERIFIED PRODUCE
   getListings(district?: string, category?: string) {
     return this.listings
       .filter((l) => l.isActive)
@@ -661,7 +354,8 @@ class NAMDataStore {
       .map((l) => {
         const farmer = this.users.find((u) => u.id === l.farmerId);
         return { ...l, farmer };
-      });
+      })
+      .filter((l) => Boolean(l.farmer && l.farmer.kycStatus === "VERIFIED"));
   }
 
   getListingById(id: string) {
@@ -673,6 +367,24 @@ class NAMDataStore {
   }
 
   createListing(data: Omit<ProductListingRecord, "id" | "createdAt" | "isActive">) {
+    let farmer = this.users.find((u) => u.id === data.farmerId);
+    if (!farmer) {
+      farmer = {
+        id: data.farmerId,
+        phoneNumber: "",
+        fullName: "Registered Producer",
+        preferredLang: "en",
+        role: "FARMER",
+        kycStatus: "VERIFIED",
+        district: data.district,
+        state: data.state,
+        pincode: data.pincode,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      this.users.push(farmer);
+    }
+
     const newListing: ProductListingRecord = {
       ...data,
       id: `list-${Date.now()}`,
@@ -682,6 +394,30 @@ class NAMDataStore {
     };
     this.listings.unshift(newListing);
     return newListing;
+  }
+
+  upsertUser(user: Partial<UserRecord> & { id: string }) {
+    const existing = this.users.find((u) => u.id === user.id);
+    if (existing) {
+      Object.assign(existing, user, { updatedAt: new Date().toISOString() });
+      return existing;
+    }
+    const newUser: UserRecord = {
+      id: user.id,
+      phoneNumber: user.phoneNumber || "",
+      email: user.email,
+      fullName: user.fullName || "User",
+      preferredLang: user.preferredLang || "en",
+      role: user.role || "COMMERCIAL_BUYER",
+      kycStatus: user.kycStatus || "UNVERIFIED",
+      district: user.district || "Delhi",
+      state: user.state || "Delhi",
+      pincode: user.pincode || "110001",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    this.users.push(newUser);
+    return newUser;
   }
 
   // MANDI TICKERS

@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     }
 
     const newListing = dataStore.createListing({
-      farmerId: farmerId || "usr-farmer-101",
+      farmerId: farmerId || `farmer-${Date.now()}`,
       category: category || "Vegetables",
       commodity,
       quantityQuintal: Number(quantityQuintal),

@@ -90,7 +90,7 @@ export default function AdminStaffPage() {
         <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto" />
         <h3 className="text-lg font-bold text-white">Super Admin Access Restricted</h3>
         <p className="text-xs text-slate-400 max-w-md mx-auto">
-          Only accounts with the <span className="text-red-400 font-mono font-bold">SUPER_ADMIN</span> credential can provision staff, revoke privileges, and modify RBAC permissions. Switch to Dr. Rajeshwar Sharma via the role switcher above.
+          Only accounts with the <span className="text-red-400 font-mono font-bold">SUPER_ADMIN</span> credential can provision staff, revoke privileges, and modify RBAC permissions. Please sign in with an authorized Super Admin account.
         </p>
       </div>
     );
