@@ -4,7 +4,7 @@
  * User, UserKYC, AdminStaff, ProductListing, MandiPriceTicker, AuditTrail, Bid
  */
 
-import { hashGovernmentId, maskIdentifier, generateDigiLockerTxRef } from "./security";
+import { hashGovernmentId, maskIdentifier, generateDigiLockerTxRef, hashPassword, verifyPassword } from "./security";
 import { AdminRole, PREDEFINED_ADMIN_STAFF } from "./auth";
 
 export interface UserRecord {
@@ -18,9 +18,12 @@ export interface UserRecord {
   district: string;
   state: string;
   pincode: string;
+  passwordHash?: string;
+  passwordSalt?: string;
   createdAt: string;
   updatedAt: string;
 }
+
 
 export interface UserKYCRecord {
   id: string;
@@ -227,6 +230,71 @@ class NAMDataStore {
     return this.users.find((u) => u.id === id);
   }
 
+  findUserByEmailOrPhone(identifier: string): UserRecord | undefined {
+    const clean = identifier.trim().toLowerCase();
+    const digitsOnly = identifier.replace(/\D/g, "");
+    return this.users.find((u) => {
+      const emailMatch = u.email && u.email.toLowerCase() === clean;
+      const phoneMatch = digitsOnly.length >= 10 && u.phoneNumber.replace(/\D/g, "").endsWith(digitsOnly.slice(-10));
+      return Boolean(emailMatch || phoneMatch);
+    });
+  }
+
+  createUser(data: {
+    fullName: string;
+    email?: string;
+    phoneNumber: string;
+    password?: string;
+    role: "FARMER" | "COMMERCIAL_BUYER" | "FPO_REPRESENTATIVE";
+    preferredLang?: string;
+    district?: string;
+    state?: string;
+    pincode?: string;
+  }): UserRecord {
+    let passwordHash: string | undefined;
+    let passwordSalt: string | undefined;
+    if (data.password) {
+      const hashed = hashPassword(data.password);
+      passwordHash = hashed.hash;
+      passwordSalt = hashed.salt;
+    }
+
+    const newUser: UserRecord = {
+      id: `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      fullName: data.fullName.trim(),
+      email: data.email ? data.email.trim().toLowerCase() : undefined,
+      phoneNumber: data.phoneNumber.trim(),
+      role: data.role || "FARMER",
+      preferredLang: data.preferredLang || "en",
+      kycStatus: "UNVERIFIED",
+      district: data.district || "Delhi",
+      state: data.state || "Delhi",
+      pincode: data.pincode || "110001",
+      passwordHash,
+      passwordSalt,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    this.users.push(newUser);
+    return newUser;
+  }
+
+  verifyUserCredentials(identifier: string, passwordAttempt: string): { success: boolean; user?: UserRecord; error?: string } {
+    const user = this.findUserByEmailOrPhone(identifier);
+    if (!user) {
+      return { success: false, error: "No account found with this email or mobile number." };
+    }
+    if (!user.passwordHash || !user.passwordSalt) {
+      return { success: false, error: "This account was registered without password. Please sign in with OTP or Google." };
+    }
+    const isValid = verifyPassword(passwordAttempt, user.passwordHash, user.passwordSalt);
+    if (!isValid) {
+      return { success: false, error: "Invalid password. Please check your credentials." };
+    }
+    return { success: true, user };
+  }
+
   updateUserKYCStatus(userId: string, status: UserRecord["kycStatus"]) {
     const user = this.users.find((u) => u.id === userId);
     if (user) {
@@ -235,6 +303,7 @@ class NAMDataStore {
     }
     return user;
   }
+
 
   // KYC
   getKYCRecords() {

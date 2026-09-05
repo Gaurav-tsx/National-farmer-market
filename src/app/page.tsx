@@ -6,6 +6,8 @@ import { useLanguage } from "@/lib/i18n/context";
 import { Navbar } from "@/components/navbar";
 import { CategoryGrid } from "@/components/category-grid";
 import { ListingCard, ListingItem } from "@/components/listing-card";
+import { useAdminSession } from "@/lib/admin-session-context";
+import { AuthCard } from "@/components/auth/auth-card";
 import {
   Search,
   Filter,
@@ -16,10 +18,13 @@ import {
   Truck,
   RotateCcw,
   Sparkles,
+  Lock,
 } from "lucide-react";
 
 export default function MarketplaceHomePage() {
   const { t } = useLanguage();
+  const { userSession, loading: sessionLoading, isAdmin } = useAdminSession();
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -76,13 +81,104 @@ export default function MarketplaceHomePage() {
     { id: "Karnal", label: "Karnal (Haryana)" },
   ];
 
+  // 1. Instant loading screen while verifying session - ELIMINATES MINI-SECOND FLASH!
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-emerald-800 via-emerald-700 to-green-900 flex flex-col items-center justify-center text-white select-none p-4">
+        <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-3 shadow-xl border border-white/20">
+          <div className="w-7 h-7 border-3 border-white border-t-transparent rounded-full animate-spin" />
+        </div>
+        <p className="font-extrabold text-lg tracking-wider text-white">NFM BHARAT</p>
+        <p className="text-xs text-emerald-200 mt-1">National Farming Marketplace • Verifying Session...</p>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated Gate: Visitor must login or sign up first!
+  if (!userSession) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-emerald-800 via-emerald-700 to-green-900 flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
+        <AuthCard />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Admin Portal Quick Access Banner - ONLY IF USER HAS ADMIN ACCESS */}
+        {isAdmin && (
+          <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border border-amber-400/40 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center text-xl shrink-0">
+                🛡️
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-sm sm:text-base text-white">
+                    Administrator Governance Active
+                  </span>
+                  <span className="text-[10px] bg-amber-400/20 text-amber-300 font-extrabold px-2 py-0.5 rounded-full border border-amber-400/40 uppercase">
+                    {userSession.role}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Authorized Gmail: <span className="text-amber-300 font-semibold">{userSession.email}</span> • Full e-NAM management privileges
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/admin"
+              className="w-full sm:w-auto px-5 py-2.5 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-slate-950 text-xs font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Launch Admin Command Center &rarr;</span>
+            </Link>
+          </div>
+        )}
+
+        {/* Normal User Greeting & Portal Hub Banner */}
+        {!isAdmin && (
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-lg shrink-0">
+                {userSession.role === "FARMER" ? "🚜" : userSession.role === "COMMERCIAL_BUYER" ? "🚚" : "👥"}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm text-slate-900">
+                    Welcome, {userSession.fullName}!
+                  </h3>
+                  <span className="text-[10px] bg-emerald-50 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                    {userSession.role === "FARMER" ? "Farmer Member" : userSession.role === "COMMERCIAL_BUYER" ? "Commercial Buyer" : "FPO Representative"}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  {userSession.role === "FARMER"
+                    ? "Verified Farmer Dashboard • Direct APMC Mandi Trading"
+                    : userSession.role === "COMMERCIAL_BUYER"
+                    ? "Commercial Wholesale Procurement Portal • Direct Farmgate Bidding"
+                    : "FPO Aggregator Hub • Cluster Produce Management"}
+                </p>
+              </div>
+            </div>
+            {userSession.role === "FARMER" && (
+              <Link
+                href="/listings/new"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Post Harvest Produce</span>
+              </Link>
+            )}
+          </div>
+        )}
+
         {/* Hero Section with National Agricultural Mission Theme */}
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-green-950 text-white p-6 sm:p-10 shadow-xl border border-emerald-700/40">
+
           <div className="relative z-10 max-w-3xl space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-700/60 border border-emerald-500/40 text-xs font-semibold tracking-wide text-emerald-200">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />

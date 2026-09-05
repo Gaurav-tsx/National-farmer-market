@@ -1,208 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
-import { useAdminSession } from "@/lib/admin-session-context";
-import {
-  ShieldCheck,
-  Lock,
-  ArrowRight,
-  AlertCircle,
-  CheckCircle2,
-  Mail,
-  Sprout,
-  ArrowLeft,
-} from "lucide-react";
+import React, { Suspense } from "react";
+import { AuthCard } from "@/components/auth/auth-card";
 
-function LoginContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const nextUrl = searchParams.get("next") || "/";
-  const { currentSession, loginWithStaffEmail } = useAdminSession();
-
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (searchParams.get("error")) {
-      setError("Authentication failed or cancelled. Please try again.");
-    }
-  }, [searchParams]);
-
-  // If already logged in, redirect
-  useEffect(() => {
-    if (currentSession) {
-      router.push(nextUrl.startsWith("/admin") ? "/admin" : nextUrl);
-    }
-  }, [currentSession, nextUrl, router]);
-
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    setError(null);
-    try {
-      const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
-            nextUrl
-          )}`,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
-        },
-      });
-
-      if (signInError) {
-        throw signInError;
-      }
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Google OAuth sign-in requires configured Google Client ID in Supabase."
-      );
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleStaffEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const result = await loginWithStaffEmail(email);
-    if (!result.success) {
-      setError(result.message || "Email not authorized for administrative access.");
-      setLoading(false);
-      return;
-    }
-
-    setLoading(false);
-    if (result.role) {
-      router.push("/admin");
-    } else {
-      router.push("/");
-    }
-  };
-
+function LoginPageContent() {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 sm:p-6 text-slate-100 font-sans">
-      {/* Return to public portal */}
-      <div className="w-full max-w-md mb-4 flex justify-between items-center text-xs">
-        <Link
-          href="/"
-          className="text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Return to Marketplace</span>
-        </Link>
-        <span className="text-emerald-400 font-bold">Government of India • e-NAM</span>
-      </div>
-
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-600 to-green-800 flex items-center justify-center text-white mx-auto shadow-lg shadow-emerald-900/40">
-            <Sprout className="w-7 h-7" />
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-white">
-            Sign In to NAM-Core
-          </h1>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            National Agricultural Marketplace &amp; Administrative Governance Portal
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Primary Action: Google Sign In */}
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={googleLoading}
-            className="w-full py-3 px-4 bg-white hover:bg-slate-100 active:bg-slate-200 text-slate-900 font-bold rounded-2xl text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-3 cursor-pointer disabled:opacity-60"
-          >
-            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-              />
-            </svg>
-            <span>{googleLoading ? "Connecting to Google..." : "Continue with Google Workspace"}</span>
-          </button>
-
-          <p className="text-[11px] text-center text-slate-500">
-            Authorized staff (@yourorg.gov.in or allowlisted Gmails) receive immediate role privileges.
-          </p>
-        </div>
-
-        {/* Divider */}
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-800 w-full" />
-          <span className="bg-slate-900 px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-            Or Verified Email
-          </span>
-        </div>
-
-        {/* Secondary: Authorized Email Login */}
-        <form onSubmit={handleStaffEmailSignIn} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5">
-              Authorized Account / Official Email
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. gaurav.verma.admin@gmail.com"
-                required
-                className="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-950 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <span>{loading ? "Verifying Access..." : "Verify & Sign In"}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
-
-        {/* Footer Security Notice */}
-        <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
-          <Lock className="w-3.5 h-3.5 text-slate-400" />
-          <span>256-bit Encrypted Government Identity Gateway</span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-emerald-800 via-emerald-700 to-green-900 flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
+      <AuthCard standalone={true} />
     </div>
   );
 }
@@ -211,12 +15,12 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-xs font-mono">
-          <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-emerald-800 flex items-center justify-center text-white text-xs font-mono">
+          <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >
-      <LoginContent />
+      <LoginPageContent />
     </Suspense>
   );
 }
