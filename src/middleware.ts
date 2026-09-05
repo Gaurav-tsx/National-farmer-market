@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { updateSession } from "@/utils/supabase/middleware";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Add security compliance headers to all responses
-  const response = NextResponse.next();
+  // Refresh Supabase user session cookies
+  const response = await updateSession(request);
+
+  // Add security compliance headers
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -13,7 +16,6 @@ export function middleware(request: NextRequest) {
 
   // Check admin route protection
   if (pathname.startsWith("/admin") && pathname !== "/admin/unauthorized") {
-    // If request has explicit simulation flag of unauthorized user
     const authHeader = request.headers.get("x-admin-email");
     if (authHeader && authHeader.includes("unauthorized")) {
       const unauthorizedUrl = new URL("/admin/unauthorized", request.url);
@@ -27,11 +29,11 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except for:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public files
+     * - public files (manifest.json, sw.js)
      */
     "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js).*)",
   ],
