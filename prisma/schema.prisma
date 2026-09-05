@@ -1,0 +1,147 @@
+// NAM-Core (National Agricultural Marketplace) Prisma Schema
+// PostgreSQL datasource with high-performance indexing for high-concurrency mandi operations
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FARMER
+  COMMERCIAL_BUYER
+  FPO_REPRESENTATIVE
+}
+
+enum KYCStatus {
+  UNVERIFIED
+  PENDING_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  COMPLIANCE_OFFICER
+  MANDI_AUDITOR
+  DISPUTE_MANAGER
+}
+
+model User {
+  id            String    @id @default(uuid())
+  phoneNumber   String    @unique
+  email         String?   @unique
+  fullName      String
+  preferredLang String    @default("en")
+  role          UserRole  @default(FARMER)
+  kycStatus     KYCStatus @default(UNVERIFIED)
+  district      String
+  state         String
+  pincode       String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  kycRecord UserKYC?
+  listings  ProductListing[]
+  buyerBids Bid[]
+
+  @@index([state, district])
+  @@index([pincode])
+  @@index([kycStatus])
+}
+
+model UserKYC {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType    String    // "AADHAAR_XML", "PAN", "UDYAM"
+  docHashOrId     String    // Masked/Hashed identifier reference (never store plain raw numbers)
+  verificationRef String    // DigiLocker transaction reference
+  verifiedAt      DateTime?
+  reviewedByAdmin String?
+  status          KYCStatus @default(PENDING_REVIEW)
+  rejectionReason String?
+  metadata        Json?     // Sanitized KYC payload response
+
+  @@index([status])
+}
+
+model AdminStaff {
+  id          String    @id @default(uuid())
+  email       String    @unique // Targeted Gmail / Domain email
+  name        String
+  role        AdminRole
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  auditLogs AuditTrail[]
+
+  @@index([email, isActive])
+}
+
+model ProductListing {
+  id              String   @id @default(uuid())
+  farmerId        String
+  farmer          User     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  category        String   // "Vegetables", "Grains", "Fruits", "Spices", "Dairy"
+  commodity       String   // e.g., "Tomato (Hybrid)", "Basmati 1121"
+  quantityQuintal Decimal  @db.Decimal(10, 2)
+  minOfferPrice   Decimal  @db.Decimal(10, 2)
+  harvestDate     DateTime
+  images          String[]
+  isOrganic       Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  pincode         String
+  district        String
+  createdAt       DateTime @default(now())
+
+  bids Bid[]
+
+  @@index([category, commodity])
+  @@index([district, isActive])
+  @@index([minOfferPrice])
+}
+
+model MandiPriceTicker {
+  id         String   @id @default(uuid())
+  state      String
+  marketAPMC String
+  commodity  String
+  minPrice   Decimal  @db.Decimal(10, 2)
+  maxPrice   Decimal  @db.Decimal(10, 2)
+  modalPrice Decimal  @db.Decimal(10, 2)
+  updatedAt  DateTime @default(now())
+
+  @@unique([marketAPMC, commodity])
+  @@index([commodity, state])
+}
+
+model AuditTrail {
+  id           String     @id @default(uuid())
+  adminId      String
+  admin        AdminStaff @relation(fields: [adminId], references: [id])
+  action       String     // e.g., "APPROVED_KYC", "MODIFIED_MANDI_PRICE"
+  targetEntity String
+  targetId     String
+  timestamp    DateTime   @default(now())
+  metadata     Json?
+}
+
+model Bid {
+  id        String         @id @default(uuid())
+  listingId String
+  listing   ProductListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId   String
+  buyer     User           @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  bidAmount Decimal        @db.Decimal(10, 2)
+  status    String         @default("PENDING") // PENDING, ACCEPTED, REJECTED, ESCROWED
+  notes     String?
+  createdAt DateTime       @default(now())
+
+  @@index([listingId])
+  @@index([buyerId])
+}

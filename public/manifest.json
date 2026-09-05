@@ -1,0 +1,17 @@
+{
+  "name": "National Agricultural Marketplace (NAM-Core)",
+  "short_name": "NAM-Core",
+  "description": "Bharat National Digital Agriculture Marketplace with offline APMC spot rates & DigiLocker verification",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#15803d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
