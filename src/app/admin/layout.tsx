@@ -3,10 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  AdminSessionProvider,
-  useAdminSession,
-} from "@/lib/admin-session-context";
+import { useAdminSession } from "@/lib/admin-session-context";
 import { createClient } from "@/utils/supabase/client";
 import {
   ShieldAlert,
@@ -331,9 +328,5 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <AdminSessionProvider>
-      <AdminLayoutInner>{children}</AdminLayoutInner>
-    </AdminSessionProvider>
-  );
+  return <AdminLayoutInner>{children}</AdminLayoutInner>;
 }

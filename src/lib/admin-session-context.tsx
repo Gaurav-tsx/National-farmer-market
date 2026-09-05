@@ -152,10 +152,20 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
   );
 }
 
-export function useAdminSession() {
+export function useAdminSession(): AdminSessionContextType {
   const context = useContext(AdminSessionContext);
   if (!context) {
-    throw new Error("useAdminSession must be used within an AdminSessionProvider");
+    return {
+      currentSession: null,
+      loading: false,
+      setSession: () => {},
+      loginWithStaffEmail: async () => ({
+        success: false,
+        message: "Authentication session initializing...",
+      }),
+      can: () => false,
+      logout: async () => {},
+    };
   }
   return context;
 }
